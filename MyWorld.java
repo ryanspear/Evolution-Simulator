@@ -94,10 +94,10 @@ public class MyWorld extends World {
         return population;
     }
 
-    public MyCreature tournamentSelection(MyCreature[] old_population, int populationSize){
+    public MyCreature tournamentSelection(MyCreature[] old_population, int populationSize, int n){
         MyCreature best = null;
         MyCreature ind = null;
-        for(int i = 0; i < 20; i++){
+        for(int i = 0; i < n; i++){
             ind = old_population[rand.nextInt(populationSize)];
             if((best == null) || ind.getFitness() > best.getFitness()){
                 best = ind;
@@ -133,10 +133,14 @@ public class MyWorld extends World {
         MyCreature[] old_population = (MyCreature[]) old_population_btc;
         // Create a new array for the new population
         MyCreature[] new_population = new MyCreature[numCreatures];
-     
+
+        int fitness = 0;
+        int highestFitness = 0;
+        MyCreature queenCreature = new MyCreature(9, 11);
         // Here is how you can get information about the old creatures and how
         // well they did in the simulation
         float avgLifeTime=0f;
+        int avgFitness = 0;
         int nSurvivors = 0;
         for(MyCreature creature : old_population) {
             // The energy of the creature.  This is zero if a creature starved to
@@ -144,7 +148,7 @@ public class MyWorld extends World {
             // creature is dead, then this number gives the energy of the creature
             // at the time of death.
             int energy = creature.getEnergy();
-
+            fitness += energy/5;
             // This querry can tell you if the creature died during the simulation
             // or not.  
             boolean dead = creature.isDead();
@@ -154,51 +158,50 @@ public class MyWorld extends World {
                 // its time of death (in units of turns)
                 int timeOfDeath = creature.timeOfDeath();
                 avgLifeTime += (float) timeOfDeath;
-                creature.setFitness(timeOfDeath);
+                fitness += timeOfDeath;
             } else {
                 nSurvivors += 1;
                 avgLifeTime += (float) _numTurns;
-                creature.setFitness(_numTurns);
+                fitness += _numTurns;
             }
+            creature.setFitness(fitness);
+            if(creature.getFitness() > queenCreature.getFitness()){
+                queenCreature = creature;
+            }
+            avgFitness += fitness;
         }
-     
+        
+        
         // Right now the information is used to print some stats...but you should
         // use this information to access creatures' fitness.  It's up to you how
         // you define your fitness function.  You should add a print out or
         // some visual display of the average fitness over generations.
         avgLifeTime /= (float) numCreatures;
+        avgFitness /= numCreatures; 
         System.out.println("Simulation stats:");
         System.out.println("  Survivors    : " + nSurvivors + " out of " + numCreatures);
         System.out.println("  Avg life time: " + avgLifeTime + " turns");
-
-
+        System.out.println("  Avg Fitness  : " + avgFitness);
+        System.out.println("  Highest Fitness: " + queenCreature.getFitness());
+        
+        float mutationProb = 0.005f;
         for(int i = 0; i < numCreatures; i++){
 
-            MyCreature parent1 = tournamentSelection(old_population, numCreatures);
-            MyCreature parent2 = tournamentSelection(old_population, numCreatures);
+            MyCreature parent1 = tournamentSelection(old_population, numCreatures, 20);
+            MyCreature parent2 = tournamentSelection(old_population, numCreatures, 20);
 
             // two parents are picked, mix their chromosomes here to create a new child.
-            MyCreature child = new MyCreature(9, 11);
-            float oldChromosome1[] = parent1.getChromosome();
-            float oldChromosome2[] = parent2.getChromosome();
-            float newChromosome[] = new float[20];
-            // float mutatationProb = 0.005;
-            int split = rand.nextInt(20); 
-            for(int j = 0; j < split; j++){
-                newChromosome[j] = oldChromosome1[j];
-            }
+            MyCreature child = new MyCreature(parent1, parent2, mutationProb);
 
-            for(int j = split; j < 20; j++){
-                newChromosome[j] = oldChromosome2[j];
-            }
-            child.setChromosome(newChromosome);
             new_population[i] = child;
 
     
         }
         // elitism here.
-        new_population[18] = tournamentSelection(old_population, numCreatures);
-        new_population[19] = tournamentSelection(old_population, numCreatures);
+        
+        new_population[rand.nextInt(numCreatures)] = tournamentSelection(old_population, numCreatures, 25);
+        new_population[rand.nextInt(numCreatures)] = tournamentSelection(old_population, numCreatures, 25);
+        new_population[rand.nextInt(numCreatures)] = queenCreature;
         
         System.out.println("new_population: " + new_population.length);
      

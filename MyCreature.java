@@ -2,34 +2,56 @@ import cosc343.assig2.Creature;
 import java.util.*;
 
 /**
-* The MyCreate extends the cosc343 assignment 2 Creature.  Here you implement
-* creatures chromosome and the agent function that maps creature percepts to
-* actions.  
-*
-* @author  
-* @version 1.0
-* @since   2017-04-05 
-*/
+ * The MyCreate extends the cosc343 assignment 2 Creature.  Here you implement
+ * creatures chromosome and the agent function that maps creature percepts to
+ * actions.  
+ *
+ * @author  
+ * @version 1.0
+ * @since   2017-04-05 
+ */
 public class MyCreature extends Creature {
 
-  // Random number generator
-  Random rand = new Random();
-    float chromosome[] = new float[20];
+    // Random number generator
+    Random rand = new Random();
+    float chromosome[] = new float[11];
     int fitness = 0;
-  /* Empty constructor - might be a good idea here to put the code that 
-   initialises the chromosome to some random state   
+    /* Empty constructor - might be a good idea here to put the code that 
+       initialises the chromosome to some random state   
   
-   Input: numPercept - number of percepts that creature will be receiving
-          numAction - number of action output vector that creature will need
-                      to produce on every turn
-  */
-  public MyCreature(int numPercepts, int numActions) {
-      for(int i = 0; i < chromosome.length; i++){
-          chromosome[i] = rand.nextFloat();
+       Input: numPercept - number of percepts that creature will be receiving
+       numAction - number of action output vector that creature will need
+       to produce on every turn
+    */
+    public MyCreature(int numPercepts, int numActions) {
+        for(int i = 0; i < chromosome.length; i++){
+            chromosome[i] = rand.nextFloat();
 
-      }
-  }
+        }
+    }
+    // use this constructor to create new creature children.
+    public MyCreature(MyCreature parent1, MyCreature parent2, float mutationProb){
 
+        int chromosomeCross = rand.nextInt(chromosome.length);
+
+        for(int i = 0; i < chromosomeCross; i++){
+            chromosome[i] = parent1.getChromosome()[i];
+        }
+        for(int i = chromosomeCross; i < chromosome.length; i++){
+            chromosome[i] = parent2.getChromosome()[i];
+        }
+
+        float odds = rand.nextFloat();
+
+        // random mutation
+        if(odds < mutationProb){
+            int randomAllele = rand.nextInt(chromosome.length);
+            chromosome[randomAllele] = rand.nextFloat();
+        }
+    }
+
+        
+    
     public float[] getChromosome(){
         return this.chromosome;
     }
@@ -39,7 +61,7 @@ public class MyCreature extends Creature {
     }
     
     public void setFitness(int fitness){
-          this.fitness = fitness;
+        this.fitness = fitness;
     }
 
     public int getFitness(){
@@ -64,66 +86,54 @@ public class MyCreature extends Creature {
      parameterise by the chromosome.  
   
      Input: percepts - an array of percepts
-            numPercepts - the size of the array of percepts depend on the percept
-                          chosen
-            numExpectedAction - this number tells you what the expected size
-                                of the returned array of percepts should bes
+     numPercepts - the size of the array of percepts depend on the percept
+     chosen
+     numExpectedAction - this number tells you what the expected size
+     of the returned array of percepts should bes
      Returns: an array of actions 
   */
-  @Override
-  public float[] AgentFunction(int[] percepts, int numPercepts, int numExpectedActions) {
+    @Override
+    public float[] AgentFunction(int[] percepts, int numPercepts, int numExpectedActions) {
+        // This is where your chromosome gives rise to the model that maps
+        // percepts to actions.  This function governs your creature's behaviour.
+        // You need to figure out what model you want to use, and how you're going
+        // to encode its parameters in a chromosome.
       
-      // This is where your chromosome gives rise to the model that maps
-      // percepts to actions.  This function governs your creature's behaviour.
-      // You need to figure out what model you want to use, and how you're going
-      // to encode its parameters in a chromosome.
-      
-      // At the moment, the actions are chosen completely at random, ignoring
-      // the percepts.  You need to replace this code.
-      float actions[] = new float[numExpectedActions];
-      int usedPercepts[] = new int[numPercepts];
-      // I need to take my info from a random percept, as long as all percepts are used. will this work when I do my evolving?
-      int actionCount = 0;
-      for(int i = 0; i < 18; i+=2){
-          int currentPercept = rand.nextInt(9);
-          while(arrayContains(usedPercepts, currentPercept)){
-                  currentPercept = rand.nextInt(9);
-              }
-              actions[actionCount] = chromosome[i]*percepts[currentPercept] + chromosome[i+1];
-              actionCount++;
-      }
-      boolean pickRandom = true;
-      int currentPercept = rand.nextInt(9);
-      actions[9] = chromosome[18]*percepts[currentPercept] + chromosome[19];
-      for(int i = 0; i < numExpectedActions-1; i++){
-          if(actions[i] > 0.2){
-              pickRandom = false;
-              break;
-          }
-      }
+        // At the moment, the actions are chosen completely at random, ignoring
+        // the percepts.  You need to replace this code.
 
-      if(pickRandom){
-          actions[10] = 1;
-      } else {
-          actions[10] = 0;
-      }
-      
-      /**
-      for(int i=0;i<numPercepts;i++) {
-          actions[i] = percepts[i]*chromosome[chromosomeIndex] + chromosome[chromosomeIndex+1];
-          chromosomeIndex+=2;
-      }
-      int eating[] = new int[3];
-      for(int i = 0; i < eating.length; i++){
-          eating[i] = rand.nextInt(9);
-      }
-      actions[9] = percepts[eating[0]] + percepts[eating[1]] + percepts[eating[2]];
-      actions[10] = rand.nextFloat();
+        
+        boolean allZero = true;
+        float actions[] = new float[numExpectedActions];
+        for(int i = 0; i < numExpectedActions; i++){
+            actions[i] = 0;
+        }
 
-      **/
+        
+        // for every percept, use the value to determine the size of the move toward or away actions.
+        for(int i = 0; i < numPercepts-1; i++){
+            // if looking at middle square, influence eating action.
+            if(i == 4 && percepts[i] != 0){
+                allZero = false;
+                actions[9] = percepts[4]*chromosome[9]*3;
+            } else {
+                if(percepts[i]!=0){
+                    allZero = false;
+                    actions[i] = percepts[i]*chromosome[i];
+                    actions[8-i] = percepts[i]*chromosome[8-i];
+                }
+            }
+        }
 
+        if(allZero){
+            actions[10] = 1;
+        } else {
+            actions[10] = chromosome[10];
+        }
+
+        
       
-      return actions;
-  }
+        return actions;
+    }
   
 }
