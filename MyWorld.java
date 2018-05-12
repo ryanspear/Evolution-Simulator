@@ -1,25 +1,31 @@
 import cosc343.assig2.World;
 import cosc343.assig2.Creature;
 import java.util.*;
+import java.awt.*;
+import java.awt.geom.*;
+import javax.swing.*;
+
 
 /**
-* The MyWorld extends the cosc343 assignment 2 World.  Here you can set 
-* some variables that control the simulations and override functions that
-* generate populations of creatures that the World requires for its
-* simulations.
-*
-* @author  
-* @version 1.0
-* @since   2017-04-05 
-*/
+ * The MyWorld extends the cosc343 assignment 2 World.  Here you can set 
+ * some variables that control the simulations and override functions that
+ * generate populations of creatures that the World requires for its
+ * simulations.
+ *
+ * @author  
+ * @version 1.0
+ * @since   2017-04-05 
+ */
 public class MyWorld extends World {
  
-  /* Here you can specify the number of turns in each simulation
-   * and the number of generations that the genetic algorithm will 
-   * execute.
-   */
-    private final int _numTurns = 100;
-    private final int _numGenerations = 500;
+    /* Here you can specify the number of turns in each simulation
+     * and the number of generations that the genetic algorithm will 
+     * execute.
+     */
+    private final int _numTurns = 200;
+    private final int _numGenerations = 50;
+    int generationTrack = 0;
+    float[] avgFitnessData = new float[_numGenerations+1];
     Random rand = new Random();
   
 
@@ -107,7 +113,7 @@ public class MyWorld extends World {
         return best;
     }
   
-            /* The MyWorld class must override this function, which is
+    /* The MyWorld class must override this function, which is
        used to fetch the next generation of creatures.  This World will
        proivde you with the old_generation of creatures, from which you can
        extract information relating to how they did in the previous simulation...
@@ -126,10 +132,12 @@ public class MyWorld extends World {
        Returns: An array of MyCreature objects - the World will expect numCreatures
        elements in that array.  This is the new population that will be
        used for the next simulation.  
-            */  
+    */  
     @Override
     public MyCreature[] nextGeneration(Creature[] old_population_btc, int numCreatures) {
         // Typcast old_population of Creatures to array of MyCreatures
+
+       
         MyCreature[] old_population = (MyCreature[]) old_population_btc;
         // Create a new array for the new population
         MyCreature[] new_population = new MyCreature[numCreatures];
@@ -183,16 +191,23 @@ public class MyWorld extends World {
         System.out.println("  Avg life time: " + avgLifeTime + " turns");
         System.out.println("  Avg Fitness  : " + avgFitness);
         System.out.println("  Highest Fitness: " + queenCreature.getFitness());
-        
-        float mutationProb = 0.005f;
+
+        MyCreature child = new MyCreature();
+        float mutationProb = 0.03f;
         for(int i = 0; i < numCreatures; i++){
 
             MyCreature parent1 = tournamentSelection(old_population, numCreatures, 20);
             MyCreature parent2 = tournamentSelection(old_population, numCreatures, 20);
-
-            // two parents are picked, mix their chromosomes here to create a new child.
-            MyCreature child = new MyCreature(parent1, parent2, mutationProb);
-
+            while(parent1 == parent2){
+                parent2 = tournamentSelection(old_population, numCreatures, 20);
+            }
+            if(parent2.getFitness() > parent1.getFitness()){
+                child = new MyCreature(parent2, parent1, mutationProb);
+            } else {
+            
+                child = new MyCreature(parent1, parent2, mutationProb);
+            }
+            
             new_population[i] = child;
 
     
@@ -202,9 +217,7 @@ public class MyWorld extends World {
         new_population[rand.nextInt(numCreatures)] = tournamentSelection(old_population, numCreatures, 25);
         new_population[rand.nextInt(numCreatures)] = tournamentSelection(old_population, numCreatures, 25);
         new_population[rand.nextInt(numCreatures)] = queenCreature;
-        
-        System.out.println("new_population: " + new_population.length);
-     
+
         // Having some way of measuring the fitness, you should implement a proper
         // parent selection method here and create a set of new creatures.  You need
         // to create numCreatures of the new creatures.  If you'd like to implement
@@ -212,8 +225,115 @@ public class MyWorld extends World {
         // example code uses all the creatures from the old generation in the
         // new generation.
 
+        // Increments the number of generations and stores average fitness in
+        // array to be graphed.
+        generationTrack++;
+        avgFitnessData[generationTrack] = avgFitness;
+        System.out.println("Generation: " + generationTrack);
+        // When at generation 500, graph the results.
+        if(generationTrack==_numGenerations){
+            JFrame f = new JFrame();
+            f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            f.add(new GraphingData(avgFitnessData));
+            f.setSize(2000, 1200);
+            f.setLocation(200, 200);
+            f.setVisible(true);
+        }
+
+
         // Return new population of creatures.
         return new_population;
+    }
+
+    /**
+     * Inner class is used for graphing the Average Fitness over generation.
+     *
+     */
+    public class GraphingData extends JPanel {
+        // Array of data.
+        float[] data;
+
+        // Preferred padding size for the graph to display.
+        final int PADDING = 50;
+
+        /**
+         * Constructor sets the data array.
+         */
+        public GraphingData(float[] data){
+            this.data = data;
+        }
+
+        /**
+         * Method draws and displays the data array as a graph.
+         * @param g graphics object required for graphing data.
+         */
+        protected void paintComponent(Graphics g) {
+
+            super.paintComponent(g);
+
+            // Create and initialise Graphics2D object for the graph.
+            Graphics2D g2 = (Graphics2D)g;
+
+            // Set width and height;
+            int width = getWidth();
+            int height = getHeight();
+
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+
+            // Sets background to white.
+            g2.setPaint(Color.white);
+            g2.fillRect(0,0,width,height);
+
+            // Draws the two axes.
+            g2.setPaint(Color.black);
+            g2.drawLine(PADDING, PADDING, PADDING, height-PADDING);
+            g2.drawLine(PADDING, height-PADDING, width-PADDING, height-PADDING);
+
+            //Draws graph labels and max fitness.
+            g.drawString("Average Fitness Over Generations", (width/2)-2*PADDING, PADDING/2);
+            g.drawString("(Pool = 1/5, mutation = 0.03)", (width/2)-2*PADDING+10, PADDING/2+15);
+            g.drawString("Average Fitness", 10, PADDING-10);
+            g.drawString("Generation", width/2-25, height-5);
+            g.drawString("Highest Average Fitness = " + Float.toString(getMax()), (width/2)-2*PADDING, height/2);
+
+
+            // Sets the increment size for x-axis and scale for y-axis.
+            double xInc = (double)(width - 2*PADDING)/(data.length-1);
+            double scale = (double)(height - 2*PADDING)/getMax();
+
+            // Draws x axis points and labels.
+            for(int i = 0; i < data.length; i++){
+                g2.draw(new Line2D.Double(i*xInc+PADDING, height-PADDING-10, i*xInc+PADDING, height-PADDING+10));
+                g.drawString(Integer.toString(i), ((int)xInc*i + PADDING)-10, height-PADDING+30);
+            }
+
+            // Draws and connects data points.
+            g2.setPaint(Color.blue);
+            double lastY = height-PADDING;
+            double lastX = PADDING;
+            for(int i = 0; i < data.length; i++) {
+                double x = PADDING + i*xInc;
+                double y = height - PADDING - scale*data[i];
+                g2.fill(new Ellipse2D.Double(x-2, y-2, 4, 4));
+                g2.draw(new Line2D.Double(lastX, lastY, x, y));
+                lastY = y;
+                lastX = x;
+            }
+        }
+
+        /**
+         * Method for returning the greatest value of our fitness data.
+         * @return highest value in the data array.
+         */
+        private float getMax() {
+            float max = -Integer.MAX_VALUE;
+            for(int i = 0; i < data.length; i++) {
+                if(data[i] > max)
+                    max = data[i];
+            }
+            return max;
+        }
     }
   
 }

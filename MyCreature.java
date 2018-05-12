@@ -14,7 +14,7 @@ public class MyCreature extends Creature {
 
     // Random number generator
     Random rand = new Random();
-    float chromosome[] = new float[11];
+    float chromosome[] = new float[8];
     int fitness = 0;
     /* Empty constructor - might be a good idea here to put the code that 
        initialises the chromosome to some random state   
@@ -29,16 +29,28 @@ public class MyCreature extends Creature {
 
         }
     }
+
+    public MyCreature(){
+
+    }
     // use this constructor to create new creature children.
     public MyCreature(MyCreature parent1, MyCreature parent2, float mutationProb){
 
         int chromosomeCross = rand.nextInt(chromosome.length);
-
-        for(int i = 0; i < chromosomeCross; i++){
-            chromosome[i] = parent1.getChromosome()[i];
-        }
-        for(int i = chromosomeCross; i < chromosome.length; i++){
-            chromosome[i] = parent2.getChromosome()[i];
+        if(chromosomeCross > chromosome.length/2){
+            for(int i = 0; i < chromosomeCross; i++){
+                chromosome[i] = parent1.getChromosome()[i];
+            }
+            for(int i = chromosomeCross; i < chromosome.length; i++){
+                chromosome[i] = parent2.getChromosome()[i];
+            }
+        } else {
+            for(int i = 0; i < chromosomeCross; i++){
+                chromosome[i] = parent2.getChromosome()[i];
+            }
+            for(int i = chromosomeCross; i < chromosome.length; i++){
+                chromosome[i] = parent1.getChromosome()[i];
+            }
         }
 
         float odds = rand.nextFloat();
@@ -54,10 +66,6 @@ public class MyCreature extends Creature {
     
     public float[] getChromosome(){
         return this.chromosome;
-    }
-
-    public void setChromosome(float[] chromosome){
-        this.chromosome = chromosome;
     }
     
     public void setFitness(int fitness){
@@ -101,39 +109,56 @@ public class MyCreature extends Creature {
       
         // At the moment, the actions are chosen completely at random, ignoring
         // the percepts.  You need to replace this code.
-
         
-        boolean allZero = true;
         float actions[] = new float[numExpectedActions];
         for(int i = 0; i < numExpectedActions; i++){
             actions[i] = 0;
         }
 
-        
-        // for every percept, use the value to determine the size of the move toward or away actions.
-        for(int i = 0; i < numPercepts-1; i++){
-            // if looking at middle square, influence eating action.
-            if(i == 4 && percepts[i] != 0){
-                allZero = false;
-                actions[9] = percepts[4]*chromosome[9]*3;
+
+        for(int i = 0; i < numPercepts; i++){
+            if(i == 4){
+                actions[9] = percepts[i]*chromosome[6];
             } else {
-                if(percepts[i]!=0){
-                    allZero = false;
-                    actions[i] = percepts[i]*chromosome[i];
-                    actions[8-i] = percepts[i]*chromosome[8-i];
+                    
+                if(percepts[i] == 3){
+                    actions[i] = percepts[i]*chromosome[0];
+                    actions[8-i] = percepts[i]*chromosome[1];
+                    
+                } else {
+                    if(percepts[i] == 2){
+                        actions[i] = percepts[i]*chromosome[2];
+                        actions[8-i] = percepts[i]*chromosome[3];
+                        
+                    } else {
+                        actions[i] = percepts[i]*chromosome[4];
+                        actions[8-i] = percepts[i]*chromosome[5];
+                    }
                 }
             }
         }
 
-        if(allZero){
-            actions[10] = 1;
-        } else {
-            actions[10] = chromosome[10];
-        }
-
+        actions[10] = chromosome[7];
+        /**
         
+        // for every percept, use the value to determine the size of the move toward or away actions.
+        for(int i = 0; i < numPercepts; i++){
+            // if looking at middle square, influence eating action.
+            if(i == 4 && percepts[i] != 0){
+                actions[9] += percepts[4]*chromosome[9]*1.2;
+            } else {
+                if(percepts[i]!=0){
+                    actions[i] += percepts[i]*chromosome[i];
+                    actions[8-i] += percepts[i]*chromosome[i+11];
+                }
+            }
+        }
+        **/
       
         return actions;
     }
+
+
+    
   
 }
