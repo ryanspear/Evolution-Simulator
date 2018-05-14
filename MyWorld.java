@@ -22,7 +22,7 @@ public class MyWorld extends World {
      * and the number of generations that the genetic algorithm will 
      * execute.
      */
-    private final int _numTurns = 50;
+    private final int _numTurns = 150;
     private final int _numGenerations = 100;
     int generationTrack = 0;
     float[] avgFitnessData = new float[_numGenerations+1];
@@ -56,7 +56,7 @@ public class MyWorld extends World {
     public static void main(String[] args) {
         // Here you can specify the grid size, window size and whether to run
         // in repeatable mode or not
-        int gridSize = 24;
+        int gridSize = 48;
         int windowWidth =  1600;
         int windowHeight = 900;
         boolean repeatableMode = false;
@@ -142,7 +142,6 @@ public class MyWorld extends World {
         // Create a new array for the new population
         MyCreature[] new_population = new MyCreature[numCreatures];
 
-        int fitness = 0;
         int highestFitness = 0;
         MyCreature queenCreature = new MyCreature(9, 11);
         // Here is how you can get information about the old creatures and how
@@ -155,6 +154,7 @@ public class MyWorld extends World {
             // death, non-negative otherwise.  If this number is non-zero, but the 
             // creature is dead, then this number gives the energy of the creature
             // at the time of death.
+            int fitness = 0;
             int energy = creature.getEnergy();
             fitness += energy/5;
             // This querry can tell you if the creature died during the simulation
@@ -198,29 +198,25 @@ public class MyWorld extends World {
         float mutationProb = 0.03f;
         for(int i = 0; i < numCreatures; i++){
 
-            MyCreature parent1 = tournamentSelection(old_population, numCreatures, 5);
-            MyCreature parent2 = tournamentSelection(old_population, numCreatures, 5);
+            MyCreature parent1 = tournamentSelection(old_population, numCreatures, 15);
+            MyCreature parent2 = tournamentSelection(old_population, numCreatures, 15);
             while(Arrays.equals(parent1.getChromosome(), parent2.getChromosome())){
-                parent2 = tournamentSelection(old_population, numCreatures, 5);
+                parent2 = tournamentSelection(old_population, numCreatures, 15);
             }
-            if(parent2.getFitness() > parent1.getFitness()){
-                child = new MyCreature(parent2, parent1, mutationProb);
-            } else {
-            
-                child = new MyCreature(parent1, parent2, mutationProb);
-            }
+
+            child = new MyCreature(parent1, parent2, mutationProb);
             
             new_population[i] = child;
             
-            System.out.println("Parent1's chromosome: " + Arrays.toString(parent1.getChromosome()));
-            System.out.println("Parent2's chromosome: " + Arrays.toString(parent2.getChromosome()));
-            System.out.println("Child's chromosome: " + Arrays.toString(child.getChromosome()));
+            //System.out.println("Parent1's chromosome: " + Arrays.toString(parent1.getChromosome()));
+            //System.out.println("Parent2's chromosome: " + Arrays.toString(parent2.getChromosome()));
+            //System.out.println("Child's chromosome: " + Arrays.toString(child.getChromosome()));
         }
         // elitism here.
 
-        for(int i = 0; i < 3; i++){       
-        new_population[i] = tournamentSelection(old_population, numCreatures, 10);
-        }
+           
+        new_population[1] = tournamentSelection(old_population, numCreatures, 10);
+       
         new_population[0] = queenCreature;
 
         // Having some way of measuring the fitness, you should implement a proper

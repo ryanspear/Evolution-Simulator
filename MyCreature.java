@@ -30,6 +30,7 @@ public class MyCreature extends Creature {
         }
     }
 
+    // [0.778465, 0.5896027, 0.37485516, 0.6267713, 0.2511134, 0.8214028, 0.68195444, 0.7151326]
     public MyCreature(){
 
     }
