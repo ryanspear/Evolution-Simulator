@@ -36,21 +36,26 @@ public class MyCreature extends Creature {
     // use this constructor to create new creature children.
     public MyCreature(MyCreature parent1, MyCreature parent2, float mutationProb){
 
-        int chromosomeCross = rand.nextInt(chromosome.length);
-        if(chromosomeCross > chromosome.length/2){
-            for(int i = 0; i < chromosomeCross; i++){
-                chromosome[i] = parent1.getChromosome()[i];
+        int chromosomeCross = rand.nextInt(chromosome.length);// 5
+        int splitAmount = rand.nextInt(chromosome.length); // 3
+        int i = 0;
+        
+        while(i < splitAmount){ // 0 1 2
+            if(chromosomeCross == chromosome.length){
+                chromosomeCross = 0;
             }
-            for(int i = chromosomeCross; i < chromosome.length; i++){
-                chromosome[i] = parent2.getChromosome()[i];
+            chromosome[chromosomeCross] = parent1.getChromosome()[chromosomeCross]; // 5 = 5
+            i++; // 0 -> 1
+            chromosomeCross++; // 5 -> 6.
+        }
+
+        while(i < chromosome.length){
+            if(chromosomeCross == chromosome.length){
+                chromosomeCross = 0;
             }
-        } else {
-            for(int i = 0; i < chromosomeCross; i++){
-                chromosome[i] = parent2.getChromosome()[i];
-            }
-            for(int i = chromosomeCross; i < chromosome.length; i++){
-                chromosome[i] = parent1.getChromosome()[i];
-            }
+            chromosome[chromosomeCross] = parent2.getChromosome()[chromosomeCross];
+            i++;
+            chromosomeCross++;
         }
 
         float odds = rand.nextFloat();

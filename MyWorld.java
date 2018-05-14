@@ -22,8 +22,8 @@ public class MyWorld extends World {
      * and the number of generations that the genetic algorithm will 
      * execute.
      */
-    private final int _numTurns = 200;
-    private final int _numGenerations = 50;
+    private final int _numTurns = 50;
+    private final int _numGenerations = 100;
     int generationTrack = 0;
     float[] avgFitnessData = new float[_numGenerations+1];
     Random rand = new Random();
@@ -178,6 +178,8 @@ public class MyWorld extends World {
             }
             avgFitness += fitness;
         }
+
+        System.out.println("Queen's chromosome: " + Arrays.toString(queenCreature.getChromosome()));
         
         
         // Right now the information is used to print some stats...but you should
@@ -196,10 +198,10 @@ public class MyWorld extends World {
         float mutationProb = 0.03f;
         for(int i = 0; i < numCreatures; i++){
 
-            MyCreature parent1 = tournamentSelection(old_population, numCreatures, 20);
-            MyCreature parent2 = tournamentSelection(old_population, numCreatures, 20);
-            while(parent1 == parent2){
-                parent2 = tournamentSelection(old_population, numCreatures, 20);
+            MyCreature parent1 = tournamentSelection(old_population, numCreatures, 5);
+            MyCreature parent2 = tournamentSelection(old_population, numCreatures, 5);
+            while(Arrays.equals(parent1.getChromosome(), parent2.getChromosome())){
+                parent2 = tournamentSelection(old_population, numCreatures, 5);
             }
             if(parent2.getFitness() > parent1.getFitness()){
                 child = new MyCreature(parent2, parent1, mutationProb);
@@ -209,14 +211,17 @@ public class MyWorld extends World {
             }
             
             new_population[i] = child;
-
-    
+            
+            System.out.println("Parent1's chromosome: " + Arrays.toString(parent1.getChromosome()));
+            System.out.println("Parent2's chromosome: " + Arrays.toString(parent2.getChromosome()));
+            System.out.println("Child's chromosome: " + Arrays.toString(child.getChromosome()));
         }
         // elitism here.
-        
-        new_population[rand.nextInt(numCreatures)] = tournamentSelection(old_population, numCreatures, 25);
-        new_population[rand.nextInt(numCreatures)] = tournamentSelection(old_population, numCreatures, 25);
-        new_population[rand.nextInt(numCreatures)] = queenCreature;
+
+        for(int i = 0; i < 3; i++){       
+        new_population[i] = tournamentSelection(old_population, numCreatures, 10);
+        }
+        new_population[0] = queenCreature;
 
         // Having some way of measuring the fitness, you should implement a proper
         // parent selection method here and create a set of new creatures.  You need
@@ -232,6 +237,7 @@ public class MyWorld extends World {
         System.out.println("Generation: " + generationTrack);
         // When at generation 500, graph the results.
         if(generationTrack==_numGenerations){
+            System.out.println(Arrays.toString(avgFitnessData));
             JFrame f = new JFrame();
             f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             f.add(new GraphingData(avgFitnessData));
