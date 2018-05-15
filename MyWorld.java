@@ -22,8 +22,8 @@ public class MyWorld extends World {
      * and the number of generations that the genetic algorithm will 
      * execute.
      */
-    private final int _numTurns = 150;
-    private final int _numGenerations = 100;
+    private final int _numTurns = 200;
+    private final int _numGenerations = 1000;
     int generationTrack = 0;
     float[] avgFitnessData = new float[_numGenerations+1];
     Random rand = new Random();
@@ -195,13 +195,13 @@ public class MyWorld extends World {
         System.out.println("  Highest Fitness: " + queenCreature.getFitness());
 
         MyCreature child = new MyCreature();
-        float mutationProb = 0.03f;
+        float mutationProb = 0.1f;
         for(int i = 0; i < numCreatures; i++){
 
-            MyCreature parent1 = tournamentSelection(old_population, numCreatures, 15);
-            MyCreature parent2 = tournamentSelection(old_population, numCreatures, 15);
+            MyCreature parent1 = tournamentSelection(old_population, numCreatures, 20);
+            MyCreature parent2 = tournamentSelection(old_population, numCreatures, 20);
             while(Arrays.equals(parent1.getChromosome(), parent2.getChromosome())){
-                parent2 = tournamentSelection(old_population, numCreatures, 15);
+                parent2 = tournamentSelection(old_population, numCreatures, 20);
             }
 
             child = new MyCreature(parent1, parent2, mutationProb);
@@ -215,7 +215,7 @@ public class MyWorld extends World {
         // elitism here.
 
            
-        new_population[1] = tournamentSelection(old_population, numCreatures, 10);
+        new_population[1] = tournamentSelection(old_population, numCreatures, 15);
        
         new_population[0] = queenCreature;
 
